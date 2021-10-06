@@ -5,7 +5,7 @@ Class:CS4280
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-//#include "scanner.h"
+#include "scanner.h"
 int main(int argc, char**argv)
 {
 	char* filename;                   
@@ -31,4 +31,5 @@ int main(int argc, char**argv)
 		filename=argv[1];
 	}
 	//Send to fileFilter in scannner
+	driver(filename);
 }
