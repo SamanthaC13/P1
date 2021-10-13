@@ -1,4 +1,4 @@
-struct token{
+struct tokenType{
 	int tokenID;
 	char* tokenInstance;
 	int lineCount;
@@ -8,6 +8,10 @@ struct charType{
 	char character;
 	int lineNum;
 	int charNum;
+};
+struct stateType{
+	int name;
+	int columnName;
 };
 void driver(char*);
 struct charType getNextChar();
