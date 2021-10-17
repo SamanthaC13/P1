@@ -5,54 +5,38 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include"token.h"
 #include"scanner.h"
-int Table[3][2];
-FILE*input;
-char* line;
+int table[3][2];
 int lineNum;
 int charNum;
-enum states (START, IDSTATE , FINAL);
-enum columns (letter=1,eof=2);
-void driver(char* filename)
+enum states {START, ID_STATE , FINAL};
+enum columns {letter=1,eof=2};
+struct tokenType scanner(char* line,int lineNum)
 {
-	Table=initializeGraph;
-	input=fopen(filename,"r");
-	if(input==NULL)
-	{
-		fprintf(stderr,"Error opening input file in scanner");
-	}
-	int len=124;
-	int ignore=0;
-	line=malloc(len*sizeof(char));
-	lineNum=0;
+	initializeGraph();
 	charNum=0;
 	struct charType currChar;
-	while(fgets(line,len,input)!=NULL)
-	{
-		lineNum++;
-		charNum=0;
-		currChar=getNextChar();
-		while(currChar.character!='\n')
-		{
-			charNum++;
-			currChar=getNextChar();	
-		}
-	}
+	struct tokenType token;
+	currChar=getNextChar(line);
+	token=FADriver(currChar,line);
+	return token;
 }
-struct charType getNextChar()
+struct charType getNextChar(char* line)
 {
 	struct charType c;
 	c.character=line[charNum];
 	c.charNum=charNum;
 	c.lineNum=lineNum;
+	charNum++;
 	return c;
 }
-int[][] initializeGraph()
+void initializeGraph()
 {
-	Table[START][letter]=ID_STATE;
-	Table[ID_STATE][letter]=ID_STATE;
-	Table[START][eof]=FINAL;
-	Table[ID_STATE][eof]=FINAL;
+	table[START][letter]=ID_STATE;
+	table[ID_STATE][letter]=ID_STATE;
+	table[START][eof]=FINAL;
+	table[ID_STATE][eof]=FINAL;
 }
 int convertToColumnNum(struct charType c)
 {
@@ -61,18 +45,18 @@ int convertToColumnNum(struct charType c)
 		return letter;
 	}
 }
-struct tokenType FADriver(struct charType c)
+struct tokenType FADriver(struct charType c,char* line)
 {
 	struct stateType currentState;
 	struct stateType nextState;
 	currentState.columnName=convertToColumnNum(c);
-	currentState.name=start;
+	currentState.name=START;
 	struct tokenType token;
-	char string[125]=NULL;
+	char string[125];
 	int count=0;
 	while(currentState.name!=FINAL)
 	{
-		nextState.name=Table[currentState.name][currentState.columnName];
+		nextState.name=table[currentState.name][currentState.columnName];
 		if(currentState.name==FINAL)
 		{
 			//need reserved keyword lookup
@@ -88,7 +72,7 @@ struct tokenType FADriver(struct charType c)
 			currentState.name=nextState.name;
 			string[count]=c.character;
 			count++;
-			c=getNextChar();
+			c=getNextChar(line);
 			currentState.columnName=convertToColumnName(c);	
 		}
 
