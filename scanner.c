@@ -7,22 +7,22 @@
 #include<string.h>
 #include"token.h"
 #include"scanner.h"
-int table[3][2];
-int lineNum;
 int charNum;
-enum states {START, ID_STATE , FINAL};
-enum columns {letter=1,eof=2};
+enum states {START, ID_STATE ,NUM_STATE};
+enum finals {IDFINAL=101,EOFFINAL};
+enum columns {letter,eof};
+int table[2][2]={{ID_STATE,EOFFINAL},{ID_STATE,IDFINAL}};
 struct tokenType scanner(char* line,int lineNum)
 {
-	initializeGraph();
+	//initializeGraph();
 	charNum=0;
 	struct charType currChar;
 	struct tokenType token;
-	currChar=getNextChar(line);
-	token=FADriver(currChar,line);
+	currChar=getNextChar(line,lineNum);
+	token=FADriver(currChar,line,lineNum);
 	return token;
 }
-struct charType getNextChar(char* line)
+struct charType getNextChar(char* line,int lineNum)
 {
 	struct charType c;
 	c.character=line[charNum];
@@ -33,50 +33,70 @@ struct charType getNextChar(char* line)
 }
 void initializeGraph()
 {
-	table[START][letter]=ID_STATE;
+//	table[3][3]= {{ID_STATE,EOFFINAL},{ID_STATE,IDFINAL} };
+	/*table[START][letter]=ID_STATE;
 	table[ID_STATE][letter]=ID_STATE;
-	table[START][eof]=FINAL;
-	table[ID_STATE][eof]=FINAL;
+	table[START][eof]=EOFFINAL;
+	table[ID_STATE][eof]=IDFINAL;*/
 }
 int convertToColumnNum(struct charType c)
 {
-	if(isAlpha(c.character))
+	if(c.character=='a')
 	{
 		return letter;
 	}
+	if(c.character=='b')
+	{
+		return letter;
+	}
+	if(c.character=='c')
+	{
+		return letter;
+	}
+	if(c.character=='\n')
+	{
+		return eof;
+	} 
+	if(c.character==EOF)
+	{
+		return eof;
+	}
 }
-struct tokenType FADriver(struct charType c,char* line)
+struct tokenType FADriver(struct charType c,char* line,int lineNum)
 {
-	struct stateType currentState;
-	struct stateType nextState;
-	currentState.columnName=convertToColumnNum(c);
-	currentState.name=START;
+	int currentState=START;
+	int nextState=0;
+	int columnIndex=convertToColumnNum(c);
 	struct tokenType token;
 	char string[125];
 	int count=0;
-	while(currentState.name!=FINAL)
+	while(currentState<100)
 	{
-		nextState.name=table[currentState.name][currentState.columnName];
-		if(currentState.name==FINAL)
+		nextState=table[currentState][columnIndex];
+		if(nextState>100)
 		{
-			//need reserved keyword lookup
+			if(nextState==IDFINAL)
+			{
+				token.tokenID=IDTK;
+			}
+			if(nextState==EOFFINAL)
+			{
+				token.tokenID=EOFTK;
+			}
+			//need reserved keyword lookup	
 			token.tokenInstance=malloc(sizeof(char)*count);
 			token.tokenInstance=string;
-			token.tokenID=currentState.name;
 			token.lineCount=c.lineNum;
-			token.charCount=c.charNum;
+			token.charCount=count;
 			return token;	
 		}		
 		else
 		{
-			currentState.name=nextState.name;
+			currentState=nextState;
 			string[count]=c.character;
 			count++;
-			c=getNextChar(line);
-			currentState.columnName=convertToColumnName(c);	
+			c=getNextChar(line,lineNum);
+			columnIndex=convertToColumnNum(c);	
 		}
-
 	}
-
-
 }

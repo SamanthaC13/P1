@@ -3,12 +3,8 @@ struct charType{
 	int lineNum;
 	int charNum;
 };
-struct stateType{
-	int name;
-	int columnName;
-};
 struct tokenType scanner(char*,int);
-struct charType getNextChar(char*);
+struct charType getNextChar(char*,int);
 void initializeGraph();
 int convertToColumn(struct charType);
-struct tokenType FADriver(struct charType,char*);
+struct tokenType FADriver(struct charType,char*,int);
