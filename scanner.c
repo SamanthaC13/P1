@@ -10,11 +10,13 @@
 #include"scanner.h"
 int charNum;
 enum states {START, ID_STATE ,NUM_STATE};
-enum finals {ID_FINAL=101,NUM_FINAL,WS_FINAL,EOF_FINAL};
-enum columns {letter,number,ws,dollarSign,eof};
-int table[3][5]={{ID_STATE,NUM_STATE,WS_FINAL,ID_STATE,EOF_FINAL},
-		{ID_STATE,ID_STATE,ID_FINAL,ID_FINAL,ID_FINAL},
-		{NUM_FINAL,NUM_STATE,NUM_FINAL,NUM_FINAL,NUM_FINAL}};
+enum finals {ID_FINAL=101,NUM_FINAL,WS_FINAL,EOL_FINAL,EOF_FINAL};
+enum columns {letter,number,ws,dollarSign,eol,eof};
+int table[3][6]={{ID_STATE,NUM_STATE,WS_FINAL,ID_STATE,EOL_FINAL,EOF_FINAL},
+		{ID_STATE,ID_STATE,ID_FINAL,ID_FINAL,ID_FINAL,ID_FINAL},
+		{NUM_FINAL,NUM_STATE,NUM_FINAL,NUM_FINAL,NUM_FINAL,NUM_FINAL}};
+char* keywords[16]={"start","stop","loop","while","for","label","exit","listen","talk",
+			"program","if","then","assign","declare","jump","else"};
 struct tokenType scanner(char* line,int lineNum, int startChar)
 {
 	//initializeGraph();
@@ -33,14 +35,6 @@ struct charType getNextChar(char* line,int lineNum)
 	c.lineNum=lineNum;
 	charNum++;
 	return c;
-}
-void initializeGraph()
-{
-//	table[3][3]= {{ID_STATE,EOFFINAL},{ID_STATE,IDFINAL} };
-	/*table[START][letter]=ID_STATE;
-	table[ID_STATE][letter]=ID_STATE;
-	table[START][eof]=EOFFINAL;
-	table[ID_STATE][eof]=IDFINAL;*/
 }
 int convertToColumnNum(struct charType c)
 {
@@ -62,13 +56,25 @@ int convertToColumnNum(struct charType c)
 	}
 	if(c.character=='\n')
 	{
-		return eof;
+		return eol;
 	} 
-	if(c.character==EOF)
+	if(c.character=='\0')
 	{
 		return eof;
 	}
 }
+int isKeyword(char* string)
+{
+	int i=0;
+	for(i=0;i<16;i++)
+	{
+		if(strcmp(string,keywords[i])==0)
+		{
+			return 1;
+		}
+	}
+	return 0;
+} 
 struct tokenType FADriver(struct charType c,char* line,int lineNum)
 {
 	int currentState=START;
@@ -76,7 +82,7 @@ struct tokenType FADriver(struct charType c,char* line,int lineNum)
 	int columnIndex=convertToColumnNum(c);
 	struct tokenType token;
 	char* string=(char*)malloc(sizeof(char));
-	int count=0;
+	int stringCount=0;
 	while(currentState<100)
 	{
 		nextState=table[currentState][columnIndex];
@@ -85,33 +91,44 @@ struct tokenType FADriver(struct charType c,char* line,int lineNum)
 			if(nextState==ID_FINAL)
 			{
 				token.tokenID=IDTK;
+				if(isKeyword(string)==1)
+				{
+					token.tokenID=KEYWRDTK;
+				}
+				token.charCount=stringCount;
 			}
 			if(nextState==NUM_FINAL)
 			{
+				token.charCount=stringCount;
 				token.tokenID=NUMTK;
 			}
 			if(nextState==EOF_FINAL)
 			{
+				token.charCount=stringCount;
 				token.tokenID=EOFTK;
+			}
+			if(nextState==EOL_FINAL)
+			{
+				token.charCount=1;
+				token.tokenID=EOLTK;
 			}
 			if(nextState==WS_FINAL)
 			{
-				count=1;
+				token.charCount=1;
 				token.tokenID=WSTK;
 			}
 			//need reserved keyword lookup	
-			string[count]='\0';
+			string[stringCount]='\0';
 			token.tokenInstance=string;
 			token.lineCount=c.lineNum;
-			token.charCount=count;
 			return token;	
 		}		
 		else
 		{
 			currentState=nextState;
-			string[count]=c.character;
-			count++;
-			string=realloc(string,count*sizeof(char));
+			string[stringCount]=c.character;
+			stringCount++;
+			string=realloc(string,stringCount*sizeof(char));
 			c=getNextChar(line,lineNum);
 			columnIndex=convertToColumnNum(c);	
 		}

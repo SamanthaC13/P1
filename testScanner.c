@@ -40,35 +40,31 @@ int main(int argc, char**argv)
 	{
 		fprintf(stderr,"Error opening input file in TestScanner");
 	}
-	char tokenNames[4][15]={"Identifier","Numbers","White Space","End Of File"};
+	char tokenNames[6][15]={"Identifier","Numbers","White Space","Keyword","End Of Line","End Of File"};
 	int len=124;
 	char* line=malloc(len*sizeof(char));
 	line=fgets(line,len,input);
+	printf("%s",line);
 	line=filterLine(line);
 	int lineNum=1;
 	int startChar=0;
 	struct tokenType token;
 	while(((token=scanner(line,lineNum,startChar)).tokenID)!=EOFTK)
 	{
-		printf("\n%s-%s-Line Number:%d-Character Count:%d",tokenNames[token.tokenID],token.tokenInstance,token.lineCount,token.charCount);
-		if(line[token.charCount]=='\n')
+		while(((token=scanner(line,lineNum,startChar)).tokenID)!=EOLTK)
 		{
-			if(lastLine==0)
-			{
-				line=fgets(line,len,input);
-				line=filterLine(line);
-				startChar=0;
-				lineNum++;		
-			}
-			else
-			{
-				startChar=startChar+token.charCount;			
-			}	
-		}
-		else
-		{
+			printf("\n%s-%s-LineNumber:%d-Character Count:%d",tokenNames[token.tokenID],token.tokenInstance,token.lineCount,token.charCount);
 			startChar=startChar+token.charCount;
 		}
+		line=fgets(line,len,input);
+		if(feof(input))
+		{
+			break;
+		}
+		line=filterLine(line);
+		startChar=0;
+		lineNum++;							
+		
 	}
 	printf("\nEndofFile-Line Number:%d\n",token.lineCount);
 }
@@ -114,14 +110,6 @@ char* filterLine(char* line)
 			commentFlag=0;
 		}
 	}
-	newLine[newLineCharCount]='\n';
-	lineCharCount++;	
-	c=line[lineCharCount];
-	if(c=='\0')
-	{
-		newLineCharCount++;
-		newLine[newLineCharCount]='\0';
-		lastLine=1;
-	}
+	newLine[newLineCharCount]='\n';	
 	return newLine;
 }
