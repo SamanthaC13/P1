@@ -4,4 +4,4 @@ struct tokenType{
 	int charCount;
 	char* tokenInstance;
 };
-enum tokenID{IDTK,NUMTK,EOFTK};
+enum tokenID{IDTK,NUMTK,WSTK,EOFTK};

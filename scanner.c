@@ -5,17 +5,20 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<ctype.h>
 #include"token.h"
 #include"scanner.h"
 int charNum;
 enum states {START, ID_STATE ,NUM_STATE};
-enum finals {IDFINAL=101,EOFFINAL};
-enum columns {letter,eof};
-int table[2][2]={{ID_STATE,EOFFINAL},{ID_STATE,IDFINAL}};
-struct tokenType scanner(char* line,int lineNum)
+enum finals {ID_FINAL=101,NUM_FINAL,WS_FINAL,EOF_FINAL};
+enum columns {letter,number,ws,dollarSign,eof};
+int table[3][5]={{ID_STATE,NUM_STATE,WS_FINAL,ID_STATE,EOF_FINAL},
+		{ID_STATE,ID_STATE,ID_FINAL,ID_FINAL,ID_FINAL},
+		{NUM_FINAL,NUM_STATE,NUM_FINAL,NUM_FINAL,NUM_FINAL}};
+struct tokenType scanner(char* line,int lineNum, int startChar)
 {
 	//initializeGraph();
-	charNum=0;
+	charNum=startChar;
 	struct charType currChar;
 	struct tokenType token;
 	currChar=getNextChar(line,lineNum);
@@ -41,17 +44,21 @@ void initializeGraph()
 }
 int convertToColumnNum(struct charType c)
 {
-	if(c.character=='a')
+	if(isalpha(c.character)!=0)
 	{
 		return letter;
 	}
-	if(c.character=='b')
+	if(c.character==' ')
 	{
-		return letter;
+		return ws;
 	}
-	if(c.character=='c')
+	if(c.character=='$')
 	{
-		return letter;
+		return dollarSign;
+	}
+	if(isdigit(c.character)!=0)
+	{
+		return number;
 	}
 	if(c.character=='\n')
 	{
@@ -68,23 +75,32 @@ struct tokenType FADriver(struct charType c,char* line,int lineNum)
 	int nextState=0;
 	int columnIndex=convertToColumnNum(c);
 	struct tokenType token;
-	char string[125];
+	char* string=(char*)malloc(sizeof(char));
 	int count=0;
 	while(currentState<100)
 	{
 		nextState=table[currentState][columnIndex];
 		if(nextState>100)
 		{
-			if(nextState==IDFINAL)
+			if(nextState==ID_FINAL)
 			{
 				token.tokenID=IDTK;
 			}
-			if(nextState==EOFFINAL)
+			if(nextState==NUM_FINAL)
+			{
+				token.tokenID=NUMTK;
+			}
+			if(nextState==EOF_FINAL)
 			{
 				token.tokenID=EOFTK;
 			}
+			if(nextState==WS_FINAL)
+			{
+				count=1;
+				token.tokenID=WSTK;
+			}
 			//need reserved keyword lookup	
-			token.tokenInstance=malloc(sizeof(char)*count);
+			string[count]='\0';
 			token.tokenInstance=string;
 			token.lineCount=c.lineNum;
 			token.charCount=count;
@@ -95,6 +111,7 @@ struct tokenType FADriver(struct charType c,char* line,int lineNum)
 			currentState=nextState;
 			string[count]=c.character;
 			count++;
+			string=realloc(string,count*sizeof(char));
 			c=getNextChar(line,lineNum);
 			columnIndex=convertToColumnNum(c);	
 		}

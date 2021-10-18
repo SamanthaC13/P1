@@ -7,6 +7,9 @@ Class:CS4280
 #include<string.h>
 #include"token.h"
 #include "scanner.h"
+char* filterLine(char*);
+int lastLine;
+int ignore;
 int main(int argc, char**argv)
 {
 	char* filename;                   
@@ -37,25 +40,88 @@ int main(int argc, char**argv)
 	{
 		fprintf(stderr,"Error opening input file in TestScanner");
 	}
-	char tokenNames[2][15]={"Identifier","Numbers","End Of File"};
+	char tokenNames[4][15]={"Identifier","Numbers","White Space","End Of File"};
 	int len=124;
 	char* line=malloc(len*sizeof(char));
 	line=fgets(line,len,input);
+	line=filterLine(line);
 	int lineNum=1;
+	int startChar=0;
 	struct tokenType token;
-	//while(token=scanner(line,lineNum)).tokenID!=EOFTK)
+	while(((token=scanner(line,lineNum,startChar)).tokenID)!=EOFTK)
 	{
-		token=scanner(line,lineNum);
-		//printf("\n%s ",tokenNames[token.tokenID]);
-		fprintf(stderr,"%s",token.tokenInstance);
-		printf("LineNumber:%d-Char Count:%d\n",token.lineCount,token.charCount);
-		/*
- *		while((token=scanner(line,lineNum))!=EOLTK)
- *		{
- *			printToken();
- *		}
- * 		*/
-		fgets(line,len,input);
-		lineNum++;	
+		printf("\n%s-%s-Line Number:%d-Character Count:%d",tokenNames[token.tokenID],token.tokenInstance,token.lineCount,token.charCount);
+		if(line[token.charCount]=='\n')
+		{
+			if(lastLine==0)
+			{
+				line=fgets(line,len,input);
+				line=filterLine(line);
+				startChar=0;
+				lineNum++;		
+			}
+			else
+			{
+				startChar=startChar+token.charCount;			
+			}	
+		}
+		else
+		{
+			startChar=startChar+token.charCount;
+		}
 	}
+	printf("\nEndofFile-Line Number:%d\n",token.lineCount);
+}
+char* filterLine(char* line)
+{
+	int lineCharCount=0;
+	int newLineCharCount=0;
+	int commentFlag=0;
+	char c=line[lineCharCount];
+	char* newLine=malloc(sizeof(char)*124);
+	while(c!='\n')
+	{
+		if(c=='&')
+		{
+			lineCharCount++;
+			if(line[lineCharCount]=='&')
+			{
+				if(ignore==0)
+				{
+					ignore=1;
+					commentFlag=1;
+				}
+				else if(ignore==1)
+				{
+					ignore=0;
+				}
+			}
+			else
+			{
+				lineCharCount--;
+			}	
+		}
+		if(ignore==0&&commentFlag==0)
+		{
+			newLine[newLineCharCount]=c;
+			newLineCharCount++;	
+
+		}
+		lineCharCount++;
+		c=line[lineCharCount];
+		if(commentFlag==1&&ignore==0)
+		{
+			commentFlag=0;
+		}
+	}
+	newLine[newLineCharCount]='\n';
+	lineCharCount++;	
+	c=line[lineCharCount];
+	if(c=='\0')
+	{
+		newLineCharCount++;
+		newLine[newLineCharCount]='\0';
+		lastLine=1;
+	}
+	return newLine;
 }
