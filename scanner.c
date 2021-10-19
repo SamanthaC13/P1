@@ -9,12 +9,19 @@
 #include"token.h"
 #include"scanner.h"
 int charNum;
-enum states {START, ID_STATE ,NUM_STATE};
-enum finals {ID_FINAL=101,NUM_FINAL,WS_FINAL,EOL_FINAL,EOF_FINAL};
-enum columns {letter,number,ws,dollarSign,eol,eof};
-int table[3][6]={{ID_STATE,NUM_STATE,WS_FINAL,ID_STATE,EOL_FINAL,EOF_FINAL},
-		{ID_STATE,ID_STATE,ID_FINAL,ID_FINAL,ID_FINAL,ID_FINAL},
-		{NUM_FINAL,NUM_STATE,NUM_FINAL,NUM_FINAL,NUM_FINAL,NUM_FINAL}};
+enum states {START, ID_STATE ,NUM_STATE,GREATER_STATE,LESSER_STATE,EQUAL_STATE,DOUBLEEQ_STATE,COLON_STATE,COLONEQ_STATE};
+enum finals {ID_FINAL=101,NUM_FINAL,WS_FINAL,EOL_FINAL,GREATER_FINAL,LESSER_FINAL,EQ_FINAL,DOUBLEEQ_FINAL,COLON_FINAL,COLONEQ_FINAL,EOF_FINAL};
+enum columns {letter,number,ws,dollarSign,eol,greater,lesser,equal,colon,eof};
+int table[9][10]={{ID_STATE,NUM_STATE,WS_FINAL,ID_STATE,EOL_FINAL,GREATER_STATE,LESSER_STATE,EQUAL_STATE,COLON_STATE,EOF_FINAL},
+		{ID_STATE,ID_STATE,ID_FINAL,ID_FINAL,ID_FINAL,ID_FINAL,ID_FINAL,ID_FINAL,ID_FINAL,ID_FINAL},
+		{NUM_FINAL,NUM_STATE,NUM_FINAL,NUM_FINAL,NUM_FINAL,NUM_FINAL,NUM_FINAL,NUM_FINAL,NUM_FINAL,NUM_FINAL},
+		{GREATER_FINAL,GREATER_FINAL,GREATER_FINAL,GREATER_FINAL,GREATER_FINAL,GREATER_FINAL,GREATER_FINAL,GREATER_FINAL,GREATER_FINAL,GREATER_FINAL},
+		{LESSER_FINAL,LESSER_FINAL,LESSER_FINAL,LESSER_FINAL,LESSER_FINAL,LESSER_FINAL,LESSER_FINAL,LESSER_FINAL,LESSER_FINAL,LESSER_FINAL},
+		{EQ_FINAL,EQ_FINAL,EQ_FINAL,EQ_FINAL,EQ_FINAL,EQ_FINAL,EQ_FINAL,DOUBLEEQ_STATE,EQ_FINAL,EQ_FINAL},
+		{DOUBLEEQ_FINAL,DOUBLEEQ_FINAL,DOUBLEEQ_FINAL,DOUBLEEQ_FINAL,DOUBLEEQ_FINAL,DOUBLEEQ_FINAL,DOUBLEEQ_FINAL,DOUBLEEQ_FINAL,DOUBLEEQ_FINAL,DOUBLEEQ_FINAL},
+		{COLON_FINAL,COLON_FINAL,COLON_FINAL,COLON_FINAL,COLON_FINAL,COLON_FINAL,COLON_FINAL,COLONEQ_STATE,COLON_FINAL,COLON_FINAL},
+		{COLONEQ_FINAL,COLONEQ_FINAL,COLONEQ_FINAL,COLONEQ_FINAL,COLONEQ_FINAL,COLONEQ_FINAL,COLONEQ_FINAL,COLONEQ_FINAL,COLONEQ_FINAL,COLONEQ_FINAL}
+		};
 char* keywords[16]={"start","stop","loop","while","for","label","exit","listen","talk",
 			"program","if","then","assign","declare","jump","else"};
 struct tokenType scanner(char* line,int lineNum, int startChar)
@@ -57,7 +64,23 @@ int convertToColumnNum(struct charType c)
 	if(c.character=='\n')
 	{
 		return eol;
-	} 
+	}
+	if(c.character=='>')
+	{
+		return greater;
+	}
+	if(c.character=='<')
+	{
+		return lesser;
+	}
+	if(c.character=='=')
+	{
+		return equal;
+	}
+	if(c.character==':')
+	{
+		return colon;	
+	}
 	if(c.character=='\0')
 	{
 		return eof;
@@ -116,6 +139,36 @@ struct tokenType FADriver(struct charType c,char* line,int lineNum)
 			{
 				token.charCount=1;
 				token.tokenID=WSTK;
+			}
+			if(nextState==GREATER_FINAL)
+			{
+				token.charCount=1;
+				token.tokenID=GTTK;
+			}
+			if(nextState==LESSER_FINAL)
+			{
+				token.charCount=1;
+				token.tokenID=LTTK;
+			}
+			if(nextState==EQ_FINAL)
+			{
+				token.charCount=1;
+				token.tokenID=EQTK;
+			}
+			if(nextState==DOUBLEEQ_FINAL)
+			{
+				token.charCount=stringCount;
+				token.tokenID=DBEQTK;
+			}
+			if(nextState==COLON_FINAL)
+			{
+				token.charCount=1;
+				token.tokenID=CLNTK;
+			}
+			if(nextState==COLONEQ_FINAL)
+			{
+				token.charCount=stringCount;
+				token.tokenID=CLNEQTK;
 			}
 			//need reserved keyword lookup	
 			string[stringCount]='\0';
