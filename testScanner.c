@@ -40,7 +40,7 @@ int main(int argc, char**argv)
 	{
 		fprintf(stderr,"Error opening input file in TestScanner");
 	}
-	char tokenNames[18][15]={"Identifier","Numbers","White Space","Keyword","End Of Line","Greater Than","Less Than","Equal","Double Equal","Colon","Colon Equal","Plus","Minus","Asterisk","Slash","Percent","Period","End Of File"};
+	char tokenNames[26][25]={"Identifier","Numbers","White Space","Keyword","End Of Line","Greater Than","Less Than","Equal","Double Equal","Colon","Colon Equal","Plus","Minus","Asterisk","Slash","Percent","Period","Left Pareneses","Right Pareneses","Comma","Left Brace","Right Brace","Semi-Colon","Left Bracket","Right Bracket","End Of File"};
 	int len=124;
 	char* line=malloc(len*sizeof(char));
 	line=fgets(line,len,input);
