@@ -17,15 +17,17 @@ int main(int argc, char**argv)
 	//This option if the user only entered the Program name without a file
 	if(argc==1)
 	{
-		char string[50];
+		char character;
 		FILE* temp;
 		option=1;
 		temp=fopen("temp.txt","w");
 		//Takes in the Keyboard input and writes it to a file I call temp.txt
-		while(scanf("%s",string)!=-1)
+		while((character=getc(stdin))!=EOF)
 		{
-			fprintf(temp,"%s ",string);
+			fputc(character,temp);
 		}
+		fputc('\n',temp);
+		fputc('\0',temp);
 		fclose(temp);
 		filename=malloc(sizeof(char)*10);
 		strcpy(filename,"temp.txt");
@@ -35,16 +37,17 @@ int main(int argc, char**argv)
 		filename=argv[1];
 	}
 	FILE* input;
+	char* lastLine;
 	input=fopen(filename,"r");
 	if(input==NULL)
 	{
 		fprintf(stderr,"Error opening input file in TestScanner");
+		exit(1);
 	}
-	char tokenNames[26][25]={"Identifier","Numbers","White Space","Keyword","End Of Line","Greater Than","Less Than","Equal","Double Equal","Colon","Colon Equal","Plus","Minus","Asterisk","Slash","Percent","Period","Left Pareneses","Right Pareneses","Comma","Left Brace","Right Brace","Semi-Colon","Left Bracket","Right Bracket","End Of File"};
+	char tokenNames[26][25]={"Identifier","Number","White Space","Keyword","End Of Line","Greater Than","Less Than","Equal","Double Equal","Colon","Colon Equal","Plus","Minus","Asterisk","Slash","Percent","Period","Left Pareneses","Right Pareneses","Comma","Left Brace","Right Brace","Semi-Colon","Left Bracket","Right Bracket","End Of File"};
 	int len=124;
 	char* line=malloc(len*sizeof(char));
 	line=fgets(line,len,input);
-	printf("%s",line);
 	line=filterLine(line);
 	int lineNum=1;
 	int startChar=0;
@@ -53,20 +56,33 @@ int main(int argc, char**argv)
 	{
 		while(((token=scanner(line,lineNum,startChar)).tokenID)!=EOLTK)
 		{
-			printf("\n%s-%s-LineNumber:%d-Character Count:%d",tokenNames[token.tokenID],token.tokenInstance,token.lineCount,token.charCount);
+			if(token.tokenID==-1)
+			{
+				printf("\nSCANNER ERROR:CHARACTER NOT IN ALPHABET ENTERED-LINE NUMBER:%d\n",lineNum);
+				exit(1);
+			}
+			if(token.tokenID!=WSTK)
+			{
+				printf("\n%s-%s-LineNumber:%d-Character Count:%d",tokenNames[token.tokenID],token.tokenInstance,token.lineCount,token.charCount);
+			}
 			startChar=startChar+token.charCount;
 		}
+		lastLine=line;
 		line=fgets(line,len,input);
 		if(feof(input))
 		{
-			break;
+			line=lastLine;
+			startChar=startChar+1;
 		}
-		line=filterLine(line);
-		startChar=0;
-		lineNum++;							
+		else
+		{
+			line=filterLine(line);
+			startChar=0;
+			lineNum++;
+		}							
 		
 	}
-	printf("\nEndofFile-Line Number:%d\n",token.lineCount);
+	printf("\n%s-Line Number:%d\n",tokenNames[token.tokenID],token.lineCount);
 }
 char* filterLine(char* line)
 {

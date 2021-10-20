@@ -64,99 +64,102 @@ int convertToColumnNum(struct charType c)
 	{
 		return letter;
 	}
-	if(c.character==' ')
+	else if(c.character==' ')
 	{
 		return ws;
 	}
-	if(c.character=='$')
+	else if(c.character=='$')
 	{
 		return dollarSign;
 	}
-	if(isdigit(c.character)!=0)
+	else if(isdigit(c.character)!=0)
 	{
 		return number;
 	}
-	if(c.character=='\n')
+	else if(c.character=='\n')
 	{
 		return eol;
 	}
-	if(c.character=='>')
+	else if(c.character=='>')
 	{
 		return greater;
 	}
-	if(c.character=='<')
+	else if(c.character=='<')
 	{
 		return lesser;
 	}
-	if(c.character=='=')
+	else if(c.character=='=')
 	{
 		return equal;
 	}
-	if(c.character==':')
+	else if(c.character==':')
 	{
 		return colon;	
 	}
-	if(c.character=='+')
+	else if(c.character=='+')
 	{
 		return plus;
 	}
-	if(c.character=='-')
+	else if(c.character=='-')
 	{
 		return minus;
 	}
-	if(c.character=='*')
+	else if(c.character=='*')
 	{
 		return asterisk;
 	}
-	if(c.character=='/')
+	else if(c.character=='/')
 	{
 		return slash;
 	}
-	if(c.character=='%')
+	else if(c.character=='%')
 	{
 		return percent;
 	}
-	if(c.character=='.')
+	else if(c.character=='.')
 	{
 		return period;
 	}
-	if(c.character=='(')
+	else if(c.character=='(')
 	{
 		return leftParen;
 	}
-	if(c.character==')')
+	else if(c.character==')')
 	{
 		return rightParen;
 	}
-	if(c.character==',')
+	else if(c.character==',')
 	{
 		return comma;
 	}
-	if(c.character=='{')
+	else if(c.character=='{')
 	{
 		return leftBrace;
 	}
-	if(c.character=='}')
+	else if(c.character=='}')
 	{
 		return rightBrace;
 	}
-	if(c.character==';')
+	else if(c.character==';')
 	{
 		return semiColon;
 	}
-	if(c.character=='[')
+	else if(c.character=='[')
 	{
 		return leftBracket;
 	}
-	if(c.character==']')
+	else if(c.character==']')
 	{	
 		return rightBracket;
 	}
-	if(c.character=='\0')
+	else if(c.character=='\0')
 	{
 		return eof;
 	}
-	return -1;
+	else
+ 	{
+		return -1;
+	}
 }
 int isKeyword(char* string)
 {
@@ -180,6 +183,11 @@ struct tokenType FADriver(struct charType c,char* line,int lineNum)
 	int stringCount=0;
 	while(currentState<100)
 	{
+		if(columnIndex<0)
+		{
+			token.tokenID=-1;
+			return token;
+		}
 		nextState=table[currentState][columnIndex];
 		if(nextState>100)
 		{
