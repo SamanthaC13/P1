@@ -8,8 +8,7 @@ Class:CS4280
 #include"token.h"
 #include "scanner.h"
 char* filterLine(char*);
-int lastLine;
-int ignore;
+int ignore=0;
 int main(int argc, char**argv)
 {
 	char* filename;                   
@@ -35,6 +34,8 @@ int main(int argc, char**argv)
 	else
 	{
 		filename=argv[1];
+		filename=strcat(filename,".fs");
+		
 	}
 	FILE* input;
 	char* lastLine;
@@ -45,6 +46,7 @@ int main(int argc, char**argv)
 		exit(1);
 	}
 	char tokenNames[26][25]={"Identifier","Number","White Space","Keyword","End Of Line","Greater Than","Less Than","Equal","Double Equal","Colon","Colon Equal","Plus","Minus","Asterisk","Slash","Percent","Period","Left Pareneses","Right Pareneses","Comma","Left Brace","Right Brace","Semi-Colon","Left Bracket","Right Bracket","End Of File"};
+	char errorNames[2][25]={"Bad Character Entered","UpperCase Letter Starter"};
 	int len=124;
 	char* line=malloc(len*sizeof(char));
 	line=fgets(line,len,input);
@@ -56,9 +58,9 @@ int main(int argc, char**argv)
 	{
 		while(((token=scanner(line,lineNum,startChar)).tokenID)!=EOLTK)
 		{
-			if(token.tokenID==-1)
+			if(token.tokenID<0)
 			{
-				printf("\nSCANNER ERROR:CHARACTER NOT IN ALPHABET ENTERED-LINE NUMBER:%d\n",lineNum);
+				printf("\nSCANNER ERROR:%s LINE NUMBER:%d\n",errorNames[(token.tokenID*-1)-1],lineNum);
 				exit(1);
 			}
 			if(token.tokenID!=WSTK)
@@ -106,6 +108,7 @@ char* filterLine(char* line)
 				else if(ignore==1)
 				{
 					ignore=0;
+					commentFlag=1;
 				}
 			}
 			else
