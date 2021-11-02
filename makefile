@@ -1,4 +1,4 @@
-C=gcc
+CC=gcc
 CFLAGS = -g 
 SOURCES = scanner.c testScanner.c
 OBJECTS = scanner.o testScanner.o
